@@ -99,21 +99,49 @@ replicated along all dimensions")
 }
 
 make.match.dimids <- function(x,dimids){
+	# the purpose of this function is to figure out
+	# how the elements in x are related if the
+	# relationships are not specified explicitly in 
+	# match.dimids.
+	#
+	# the basic outline of the algorithm is:
+	# 1. check if the dimensions of the objects in x
+	# 	 are fully named.
+	# 2a.if they are, try to match them based on their
+	#	 names.
+	# 2b.if they aren't, try to match them based on
+	#	 their lengths.
+	# 3. if a fully replicated match.dimids doesn't
+	#    result, then try 2b one more time.
+	
 	match.dimids <- list()
 	
-	# set a flag that ????
 	check <- FALSE
 	
-	# create a list of the dimnames in x
+	# 1. create a list of the dimnames in x.
+	# we use the utility function get.input.names
+	# because it returns the right kind of 'dim'
+	# name for each kind of object in x. different
+	# object types in R have different ways of 
+	# retrieving the names associated with it.
+	# see the comments for get.input.names
+	# for more detail. 
 	innames <- lapply(x,get.input.names)
 	ulinnames <- unlist(innames,recursive=FALSE)
 	
 	# get a logical vector indicating which elements
-	# in x have null dimnames.  this is used for???
+	# in x have non-null dimnames.
 	notnullnames <- !sapply(innames,is.null)
 	
-	
 	if(all(notnullnames) && !is.null(ulinnames)){
+		# 2a. this condition is evaluated when the dimensions
+		# of the elements in x are 'fully named'
+		# therefore, this is where the algorithm tries
+		# to match dimnames
+		
+		# the first thing to be done is to check that there
+		# is a comparison to make (i.e. the dimnames are not
+		# all unique and there is more than one variable)
 		unique.dimnames <- unique(ulinnames)
 		allunique <- length(unique.dimnames)==length(ulinnames)
 		morethanonevar <- length(x) > 1
@@ -122,14 +150,49 @@ make.match.dimids <- function(x,dimids){
 "Resulting data list invalid:
 some variables do not share any
 dimensions with other variables")
+
+		# create a list with one element for each in x,
+		# with vector elements giving indices for each of
+		# the dimensions associated with that element.
+		# for example, for two elements such that the first
+		# has two dimensions and the second shares the first
+		# of those two, we would have something like:
+		# 	$A
+		# 	[1] 1 2
+		# 	$B
+		# 	[1] 1
 		mat.ndims <- lapply(innames,match,unique.dimnames)
+
+		# now create a vector of the sizes of the indexed
+		# dimensions in mat.ndims (wfr stands for 'which
+		# fully replicated' because the dimensions overall
+		# are equal to the dimensions of a fully replicated
+		# variable -- e.g. benchmark variable)
 		indims.wfr <- sapply(unique.dimnames,length)
+
+		# check that the dimensions of each element in x 
+		# are fully replicated, when its time to do so
 		check <- TRUE
 	}
 	else{
+		# 2b. if this condition is evaluated then dimension
+		# matching is attempted using the lengths of the
+		# dimensions of the elements in x.
+		 
+		# get the dimensions of the elements in x
 		indims <- lapply(x,get.input.dims)
+		
+		# find out which one is fully replicated (wfr)
 		wfr <- which.max(sapply(indims,length))
+		
+		# get a vector of the sizes of the data list 
+		# dimensions (compare with indims.wfr in the 
+		# previous condition)
 		indims.wfr <- indims[[wfr]]
+		
+		# if some dimensions appear to have an identical
+		# length, then it is impossible to decide how to
+		# match them.
 		if(length(unique(indims.wfr)) < length(indims.wfr)){
 			stop(
 "Some dimensions are unnamed and some are 
@@ -138,15 +201,43 @@ specification of match.dimids. Type
 ?data.list and see the details section
 of the help file for data.list.")
 		}
+		
+		# see the explanation above for mat.ndims
 		mat.ndims <- lapply(indims,match,indims.wfr)
+		
+		# set check to FALSE so that length-based matching
+		# is only tried one time
 		check <- FALSE
 	}
+	
+	# make sure the dimension ids (dimids) exist
 	if(missing(dimids)) dimids <- paste("D",seq_along(indims.wfr),sep="")
+	
+	# see ?as.data.list for definition of match.dimids
 	match.dimids <- lapply(mat.ndims,function(ii)dimids[ii])
+	
+	# make sure that match.dimids is fully replicated.
+	# if not, the condition will be evaluated, which
+	# recursively calls make.match.dimids and tries
+	# one more time to match the dimids
 	if(check.full.rep(match.dimids) && check){
 		names(x[[1]]) <- dimnames(x[[1]]) <- NULL
 		match.dimids <- make.match.dimids(x,dimids)
 	}
+	
+	##### possible paths through the algorithm: #####
+	#
+	# 1. try matching by names, but fail with error
+	# 2. try matching by names, but get non-fully-replicated
+	#    output, then try matching by lengths but fail with error
+	# 3. try matching by names, but get non-fully-replicated
+	#    output, then try matching by lengths and succeed
+	# 4. try matching by names, and succeed
+	# 5. try matching by lengths, but fail with error
+	# 6. try matching by lengths, and succeed
+	#
+	#################################################
+	
 	return(match.dimids)
 }
 
@@ -163,7 +254,18 @@ atomic elements")
 }
 
 get.input.names <- function(xi){
-	if(is.null(dim(xi)) & is.atomic(xi)) return(list(names(xi)))
+	# this function returns the `dim` names assocaited with
+	# xi.  different types of objects have different types
+	# of names, stored in attributes.  for:
+	# data frames: list with one element containing row.names
+	# atomic vector: list with one element containing names
+	# matrix or array: dimnames
+	# anything else: NULL, which will cause errors with bad messages
+	# (non-data frame) list: work with the first element and extract
+	#						 its names
+	
+	if(is.data.frame(xi)) return(list(rownames(xi)))
+	else if(is.null(dim(xi)) & is.atomic(xi)) return(list(names(xi)))
 	else if(is.recursive(xi) & is.atomic(xi[[1]])){
 		if(is.null(dim(xi[[1]]))) return(list(names(xi[[1]])))
 		else return(dimnames(xi[[1]]))
@@ -176,6 +278,9 @@ only atomic elements")
 
 check.full.rep <-
 function(match.dimids){
+	# return FALSE if match.dimids contains a fully replicated
+	# (e.g. benchmark) variable and TRUE otherwise.
+	
 	mt <- match.dimids[[which.max(sapply(match.dimids,length))]]
 	dims <- lapply(match.dimids,match,table=mt)
 	any(sapply(dims,function(x)any(is.na(x))))

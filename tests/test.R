@@ -116,3 +116,23 @@ test_that("character valued benchmark variable",{
 	dl3 <- data.list(A,B,C)
 	expect_that(dl2,equals(dl3))
 })
+
+test_that("automatic dimension matching with data.frame inputs",{
+	library(multitable)
+	A <- matrix(runif(10),5,2)
+	B <- data.frame(runif(5),runif(5))
+	rownames(A) <- rownames(B) <- letters[1:5]
+	colnames(A) <- LETTERS[1:2]
+	dl1 <- data.list(A,B,dimids=c("small","large"))
+	dl2 <- data.list(A,B,match.dimids=list(c("small","large"),"small"))
+	expect_that(dl1,equals(dl2))
+})
+
+test_that("two different ways to NULL-out a variable are equivalent",{
+	library(multitable)
+	data(fake.community)
+	dl1 <- dl2 <- fake.community
+	dl1[["body.size"]] <- NULL
+	dl2$body.size <- NULL
+	expect_that(dl1,equals(dl2))
+})
