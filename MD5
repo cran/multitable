@@ -1,10 +1,10 @@
-734e7af75cb305211df16f31d19a676e *DESCRIPTION
+07e567fd36b317e5c8427351136610e6 *DESCRIPTION
 bd1ca356040883c671d16620d0fc5cdb *NAMESPACE
-5725d341e48f00c2365dde904c345bd1 *NEWS
+e38eb9e406ab463eb5221f4662618ee3 *NEWS
 a593637d7e71eced327b1f7776d1e6fe *R/Extract.data.list.R
 17fc0fe485497dd1a65bfd04708bce20 *R/accessor.functions.R
 9deab856885911a511c36181e1f7bc82 *R/aperm.R
-08e676485df3a2fbe0ee7853a8d681c0 *R/as.R
+6c8eab29771ca5b337ee6d3dd641a1b3 *R/as.R
 7678165ec3e25da9ce49294e2948ae35 *R/data.list.R
 7fbd9542c14cd06774c1adadcd8942c8 *R/dims_to_vars.R
 fc4d987bf98fdeb2b0fce3c71005a7f0 *R/dlapply.R
@@ -13,7 +13,7 @@ c5dc0deeba72f26f6f66db828c148b41 *R/dlcast.R
 889520a674a6bae0057091e7ed16ad6a *R/drop.R
 40bf32b014d85aa5296132b0da6a6430 *R/fc.data.list.R
 52d0a197e3ad23414d8c34a47345e6eb *R/merge.data.list.R
-ed4a4572f5588027d1c2492fd7817eae *R/print.data.list.R
+da3255a97ab60e355f538091bb53d38a *R/print.data.list.R
 9fb2f1f082ad68fb9e3905d3fd2b8710 *R/read.multitable.R
 2cd7dc3a2eefc6a3835b46a5c2320bca *R/summary.data.list.R
 d344b6046b4e8b37880a73853de90fa9 *R/utilities.R
@@ -25,7 +25,7 @@ b3d6f6be7664ff6cc363685a52a4ff69 *R/zzz.R
 fc049e6c2995720f10be3965bba81112 *data/fake.community.rda
 fe0a0279c111d094071cb5397d93cbae *data/higgins.rda
 cb5ae79ad63b79ac297eca59ddbb4cff *inst/doc/multitable.Rnw
-0869cd5ff78d845662856ee4028c5d1f *inst/doc/multitable.pdf
+a0e272edc6a023b1cb9e562f4e4a0479 *inst/doc/multitable.pdf
 4e9c903e03020d5877757aaaf6b99cf0 *man/Extract.data.list.Rd
 4a92dbc56609c0cf69ca5ef70ebf08fb *man/Ops.data.list.Rd
 ad274f7b816482fe7287e79351d3d82c *man/aperm.data.list.Rd
@@ -52,7 +52,7 @@ badb8ba0638c284f985b889af3acde84 *man/variable.Rd
 35e54a6d787514c7d87b01ed3df0b627 *man/variablize.Rd
 45eabd3fd9e34c55d4528de51ce5335d *man/varnames.Rd
 975901804d0b34512b5ebf75bc322a0f *man/with.Rd
-5159cf9d6e88f56cd4d67181c7550a11 *tests/test.R
+dcd3eae772331bafebd1978d2ce261fe *tests/test.R
 b5dff4aeb3e1fc927eb3adff6cef7d28 *vignettes/Bibliography.bib
 399d0186bb73fe774f5a93492c321021 *vignettes/Makefile.txt
 9185e6a787459afe1b348fd5fcba1c95 *vignettes/RJournal.sty
