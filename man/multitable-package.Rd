@@ -4,37 +4,44 @@
 \docType{package}
 \title{Simultaneous manipulation of multiple arrays of data, with data.list objects}
 \description{
-Many data sets do not easily fit into a single data frame.  Storing such data in a single data frame often results in either large numbers of meaningless missing values or storage of redundant information; yet storing them in multiple data frames often results in long difficult-to-read workflows.  The multitable package introduces a new data object called a \code{\link{data.list}}, which organises several data tables as a single \R object.  The primary goal of \pkg{multitable} is to provide a more intuitive framework for manipulating multiple-table data in \R.  As data.lists can be coerced to data.frames, they can be used with all \R functions that accept an object that is coercible to a data.frame (e.g. \code{\link{lm}}; \code{\link{plot}}; \code{lme}; and many more).}
+Data frames are integral to \code{R}.  They provide a standard format for passing data to model-fitting and plotting functions, and this standard makes it easier for experienced users to learn new functions that accept data as a single data frame.  Still, many data sets do not easily fit into a single data frame; data sets in ecology with a so-called fourth-corner problem provide important examples.  Manipulating such inherently multiple-table data using several data frames can result in long and difficult-to-read workflows.  We introduce the \code{R} \pkg{multitable} package to provide new data storage objects called \code{data.list} objects, which extend the \code{data.frame} concept to explicitly multiple-table settings.  Like data frames, data lists are lists of variables stored as vectors; what is new is that these vectors have dimension attributes that make accessing and manipulating them easier.  As \code{data.list} objects can be coerced to \code{data.frame} objects, they can be used with all \code{R} functions that accept an object that is coercible to a \code{data.frame}.	
+}
 \details{
 \tabular{ll}{
 Package: \tab multitable\cr
 Type: \tab Package\cr
-Version: \tab 1.3\cr
-Date: \tab 2012-03-06\cr
-Suggests: \tab MASS, lattice, testthat\cr
+Version: \tab 1.5\cr
+Date: \tab 2012-11-09\cr
+Suggests: \tab MASS, lattice, testthat, arm, ggplot2, rbenchmark, scales, vegan\cr
 License: \tab GPL-2\cr
-URL: \tab http://multitable.r-forge.r-project.org/\cr
+URL: \tab \url{http://multitable.r-forge.r-project.org/}\cr
 LazyLoad: \tab yes\cr
 }
+}
+\note{
+Using \pkg{multitable} DOES NOT REQUIRE ANY OTHER PACKAGES, other than those that typically come with \code{R}.  The suggested packages are only for examples in the help files and vignette, and for package development (i.e. \pkg{testthat}).
 }
 \author{
 Maintainer: Steve Walker <steve.walker@utoronto.ca>
 }
+\references{
+Steven C Walker, Guillaume Guenard, Peter Solymos, Pierre Legendre (2012). Multiple-Table Data in R with the multitable Package. Journal of Statistical Software, 51(8), 1-38. URL \url{http://www.jstatsoft.org/v51/i08/}
+}
 \keyword{ package }
 \examples{
 ######################################################
-# The following examples appear in the package
-# vignette, and the sections below correspond to
-# that document
+# The package vignette (Walker et al. 2012 JSS) is a
+# useful place to start
 ######################################################
 vignette("multitable")
 
+
 ######################################################
-# SECTION 2: The structure of data lists
+# The structure of data lists
 ######################################################
 
 # load the example data set in data list form.
-data("fake.community")
+data(fake.community)
 fake.community
 
 # print a summary of the relational structure
@@ -42,7 +49,7 @@ fake.community
 summary(fake.community)
 
 ######################################################
-# SECTION 3: Subscripting data lists
+# Subscripting data lists
 ######################################################
 
 # extract two years of data.
@@ -60,7 +67,7 @@ fake.community[1:3, "1537", 1]
 ?`[.data.list`
 
 ######################################################
-# SECTION 4: Transforming variables in data lists
+# Transforming variables in data lists
 ######################################################
 
 # transformation occurs much like it would with
@@ -72,7 +79,7 @@ fake.community$body.size["moss"] <- 1
 fake.community
 
 ######################################################
-# SECTION 5: Simple analysis functions
+# Simple analysis functions
 ######################################################
 
 # we can pass data lists to lm just as we would pass
@@ -87,7 +94,7 @@ library("MASS")
 rlm(abundance ~ body.size*temperature, data = fake.community)
 
 ######################################################
-# SECTION 6: Coercing data lists to data frames
+# Coercing data lists to data frames
 ######################################################
 
 # data frames are easily coerced to data frames via
@@ -98,14 +105,14 @@ fake.community.df[, -6]
 # therefore, data list objects can easily be passed to
 # any R function accepting a data frame, after they
 # have been converted to a data frame.
-library("lattice")
+library(lattice)
 xyplot(abundance ~ temperature | body.size, data = fake.community.df)
 
 # for further information about coercing in multitable:
 ?as.data.list
 
 ######################################################
-# SECTION 7: How data lists are made
+# How data lists are made
 ######################################################
 
 # here are three example objects to be combined into
@@ -142,7 +149,7 @@ trait
 # shared among tables.  the fill argument tells 
 # dlcast how to fill in any structural missing 
 # values.
-dl <- dlcast(list(abundance,environment,trait),
+dl <- dlcast(list(abundance, environment, trait),
 	dimids=c("sites", "species"),
 	fill=c(0, NA, NA)
 )

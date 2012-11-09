@@ -41,7 +41,7 @@ test_that("long logical subscripting with 1D data lists",{
 test_that("subscripting with empty character strings and completely empty subscripts",{
 	library(multitable)
 	data(fake.community)
-	em <- try(fake.community[,],silent=TRUE)[1]
+	#em <- try(fake.community[,],silent=TRUE)[1]
 	
 	expect_that(fake.community["","",""],is_identical_to(fake.community))
 	expect_that(fake.community[,"",""],is_identical_to(fake.community))
@@ -496,6 +496,8 @@ test_that("data.list doesn't fail for standard fourth-corner problems with dim n
 
 	Y <- X %*% C %*% t(Z)
 	dimnames(Y) <- list(letters[1:n], letters[1:m])
+	rownames(X) <- dimnames(Y)[[1]]
+	rownames(Z) <- dimnames(Y)[[2]]
 
 	dl <- data.list(as.data.frame(X), as.data.frame(Z), Y)	
 })
@@ -518,6 +520,103 @@ test_that("data.list doesn't fail for mefa-like data structure (i.e. 4th corner 
 
 	dl1 <- data.list(Y1, Y2, as.data.frame(X), as.data.frame(Z))
 	dl2 <- data.list(as.data.frame(X), Y2, as.data.frame(Z), Y1)
+	dl3 <- data.list(list(Y1 = Y1, Y2 = Y2), as.data.frame(X), as.data.frame(Z))
 
 	expect_that(dl1, equals(dl2[c(5, 2, 1, 3, 4)]))
+	expect_that(dl1, equals(dl3))
+
+})
+
+#test_that("#2008 is fixed",{
+#	library(multitable)
+#	set.seed(1)
+#	x <- runif(10)
+#	y <- runif(11)
+#	em <- try(data.list(x, y), silent = TRUE)[1]
+#	THIS EXPECT_THAT IS NOT WRITTEN CORRECTLY BUT ITS NOT TO BE RUN ANYWAYS
+#	expect_that(em, equals("Error in as.data.list.default(x, dimids, match.dimids, check = check,  : 
+#  at least one variable must be
+#replicated along all dimensions"))
+#})
+
+
+test_that("dlapply works for simple fourth-corner data",{
+
+	library(multitable)
+
+	set.seed(1)
+
+	Y <- matrix(runif(10), 5, 2)
+	X <- runif(5)
+	Z <- runif(2)
+
+	dl <- data.list(Y, X, Z)
+
+	dl1 <- dlapply(dl, 1, sum)
+	dl2 <- dlapply(dl, 2, sum)
+})
+
+test_that("make.dimnames.consistent is in the right places",{
+
+	library(multitable)
+
+	set.seed(1)
+	Y <- matrix(rnorm(9), 3, 3)
+	x <- rnorm(3)
+	
+	dl <- data.list(Y, x, match.dimids = list(c('D1','D2'),'D1'))
+	
+	names(dl$x) <- letters[1:3]
+	dimnames(dl$Y) <- list(NULL, letters[1:3])
+	
+	df <- as.data.frame(dl)
+	dl11 <- dl[1,1]
+})
+
+test_that("make.match.dimids works",{
+	
+	library(multitable)
+	data(fake.community)
+
+	### FIRST HOW I DISCOVERED THE PROBLEM ###
+	l <- lapply(fake.community[-6], simple.scale)
+
+	as.data.list(l)
+	data.list(l[[1]], l[[2]], l[[3]], l[[4]], l[[5]])
+	
+	### NOW A MINIMAL EXAMPLE ###
+	# reveals that the problem relates to properly named
+	# dimensions with the same number of replicates
+	set.seed(1)
+	Y <- matrix(rnorm(4), 2, 2)
+	x <- rnorm(2)
+	z <- rnorm(2)
+
+	rownames(Y) <- names(x) <- letters[1:2]
+	colnames(Y) <- names(z) <- letters[3:4]
+
+	data.list(Y, x, z)
+	data.list(Y, data.frame(x), data.frame(z))
+	data.list(data.frame(x), data.frame(z), Y)
+	
+})
+
+test_that("dropdl works",{
+	library(multitable)
+
+	data(fake.community)
+	fc <- fake.community
+
+	dl1 <- fc[,1,]
+	dl1 <- dropdl(dl1)[1:3]
+
+	dl2 <- dl1[,1, drop = FALSE]
+	dropdl(dl2)
+	
+	set.seed(1)
+	Y <- matrix(rnorm(6), 3, 2)
+	x <- rnorm(3)
+	z <- rnorm(2)
+	dl3 <- data.list(Y, x, z)
+	dropdl(dl3[,1])
 })

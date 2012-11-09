@@ -138,12 +138,19 @@ make.match.dimids <- function(x, dimids){
 	# see the comments for get.input.names
 	# for more detail. 
 	innames <- lapply(x, get.input.names)
-	ulinnames <- unlist(innames, recursive=FALSE)
+	ulinnames <- unlist(innames, recursive = FALSE)
 	
 	# get a logical vector indicating which elements
 	# in x have non-null dimnames.
-	notnullnames <- !sapply(innames,is.null) # think this line is a bug...
+	#notnullnames <- !sapply(innames,is.null) # think this line is a bug...
 	#notnullnames <- !sapply(ulinnames,is.null) # that this line fixes???
+
+	# above still buggy so new attempt
+	notnullnames <- !(any(sapply(innames,is.null)) || any(sapply(ulinnames,is.null)))
+	
+	# get the dimensions of the elements in x
+	indims <- lapply(x, get.input.dims)
+	dimlengths <- sapply(indims, length)
 	
 	#if(all(notnullnames) && !is.null(ulinnames)){
 	# fixed a BUG here:  the !is.null(ulinnames) is not necessary,
@@ -154,7 +161,13 @@ make.match.dimids <- function(x, dimids){
 	# ulinnames) or get.input.names (when creating innames) has 
 	# dropped some elements and this means that some of the innames 
 	# were NULL, which is what we want to avoid in this condition.
-	if(all(notnullnames) && (length(x) == length(ulinnames))){
+	#if(notnullnames && (length(x) == length(innames))){
+	#if(notnullnames && (length(x) == length(ulinnames))){# removed all() around notnullnames...now handled in the defnition of notnullnames
+	# BUG FIX in the following if:  sum(dimlenghts) replaces length(x).
+	# this fix is obvious in hindsight...of course we want the total
+	# number of dimname vectors to equal the total number of dimensions,
+	# NOT the total number of variables.
+	if(notnullnames && (sum(dimlengths) == length(ulinnames))){
 		# 2a. this condition is evaluated when the dimensions
 		# of the elements in x are 'fully named'
 		# therefore, this is where the algorithm tries
@@ -170,7 +183,10 @@ make.match.dimids <- function(x, dimids){
 			stop(
 "Resulting data list invalid:
 some variables do not share any
-dimensions with other variables")
+dimensions with other variables
+(HINT: check the names and dimnames
+of the objects being combined 
+into a data list)")
 
 		# create a list with one element for each in x,
 		# with vector elements giving indices for each of
@@ -200,11 +216,8 @@ dimensions with other variables")
 		# matching is attempted using the lengths of the
 		# dimensions of the elements in x.
 		 
-		# get the dimensions of the elements in x
-		indims <- lapply(x, get.input.dims)
-		
 		# find out which one is fully replicated (wfr)
-		wfr <- which.max(sapply(indims, length))
+		wfr <- which.max(dimlengths)
 		
 		# get a vector of the sizes of the data list 
 		# dimensions (compare with indims.wfr in the 
@@ -216,11 +229,11 @@ dimensions with other variables")
 		# match them.
 		if(length(unique(indims.wfr)) < length(indims.wfr)){
 			stop(
-"Some dimensions are unnamed and some are 
-of the same length and therefore require
-specification of match.dimids. Type
-?data.list and see the details section
-of the help file for data.list.")
+"Dimensions could not be matched by names 
+and some dimensions are of the same length 
+and therefore require specification of 
+match.dimids. Type ?data.list and see the
+details section of the help file for data.list.")
 		}
 		
 		# see the explanation above for mat.ndims
@@ -242,7 +255,11 @@ of the help file for data.list.")
 	# recursively calls make.match.dimids and tries
 	# one more time to match the dimids
 	if(check.full.rep(match.dimids) && check){
-		names(x[[1]]) <- dimnames(x[[1]]) <- NULL
+		#names(x[[1]]) <- dimnames(x[[1]]) <- NULL
+		# following line is slower but more explicit than the previous one
+		for(i in seq_along(x)) names(x[[i]]) <- dimnames(x[[i]]) <- NULL
+		# maybe reinstate the following explicit message???
+		#message('matching dimids failed, trying one more time with dimension names deleted')
 		match.dimids <- make.match.dimids(x, dimids)
 	}
 	
@@ -442,9 +459,12 @@ function(x, bm, repdim){
 }
 
 make.dimnames.consistent <-
-function(x,bm){
+function(x, bm){
 	dimnames(x) <- dimnames(bm(x))
-	if(is.null(dimnames(x))) dimnames(x) <- lapply(dim(x), function(di) seq_len(di))
+	if(any(sapply(dimnames(x), is.null)) ||  is.null(dimnames(x))){
+		dimnames(x) <- lapply(dim(x), function(di) seq_len(di))
+	}
+	# if(is.null(dimnames(x))) dimnames(x) <- lapply(dim(x), function(di) seq_len(di))
 	return(x)
 }
 
@@ -465,6 +485,7 @@ function(x, drop.attr=TRUE, factorsTOstrings=FALSE, ...){
 
 as.data.frame.data.list <-
 function(x, row.names = NULL, optional = FALSE, scheme = "repeat", mold, ...){
+	x <- make.dimnames.consistent(x, attr(x, 'bm'))
 	if(missing(mold)) mold <- data.list.mold(x)
 	#out <- lapply(seq_along(x), function(i) as.vector(x[[i]][mold[[i]]]))
 	out <- lapply(seq_along(x), function(i) 

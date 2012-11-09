@@ -3,6 +3,51 @@ svn log svn://svn.r-forge.r-project.org/svnroot/multitable
 
 *************************************
 **				   **
+**	multitable version 1.5	   **
+**				   **
+*************************************
+
+NEW FEATURES
+
+	new function, is.4th.corner, tests if a
+	data list has all the properties of a
+	data set with a fourth corner problem.
+
+	new function, simple.scale, that provides
+	a version of the scale function that treats
+	matrices as whole variables rather than
+	as collections of variables.
+
+	new vignette, which matches the journal
+	of statistical software paper.
+
+	added a read.matrix function for loading
+	in data as a matrix (instead of as a
+	data frame).  useful to keep track of
+	whether a table of data should be added
+	to a data list as a 2-dimensional
+	variable or as a set of 1-dimensional 
+	variables.
+	
+
+BUG FIXES
+
+	added test and bug fix for a problem
+	with dropdl.
+
+	fixed bug that led to dimnames being
+	inconsistent amongst variables in a data
+	list.  now make.dimnames.consistent 
+	is in the right places.  test added.
+
+	fixed bug #2008: 'incompatible dimensions
+	in y' error message called inappropriately
+
+	fixed bug #2159: 'dlapply failing where it
+	shouldn't'.  test added.
+
+*************************************
+**				   **
 **	multitable version 1.4	   **
 **				   **
 *************************************
@@ -23,6 +68,8 @@ BUG FIXES
 	even though dimnames were not present.
 	this has been fixed and many tests
 	added.
+
+	some silly unit tests were removed.
 
 *************************************
 **				   **
